@@ -1,15 +1,27 @@
 {
-  "name": "vet",
+  "name": "@nhatprx/vet",
   "version": "1.0.0",
   "description": "Lightweight, zero-dependency engineering ruleset and compliance checker for AI agents and developers.",
   "type": "module",
   "license": "MIT",
   "repository": "github:nhatprx/vet",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
   "bin": {
     "vet": "./vet/init.mjs",
     "vet-check": "./vet/check.mjs"
-  }
+  },
+  "files": [
+    "AGENTS.md",
+    "vet.config.json",
+    "vet/*.mjs",
+    "!vet/*.test.mjs",
+    ".githooks/pre-commit",
+    ".githooks/commit-msg",
+    ".github/workflows/vet.yml"
+  ]
 }

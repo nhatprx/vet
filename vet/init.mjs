@@ -147,7 +147,7 @@ export function initProject({
 if (isMainModule()) {
   const args = new Set(process.argv.slice(2));
   if (args.has('-h') || args.has('--help')) {
-    console.log('Usage: npx github:nhatprx/vet [--local | --shared] [--adapters]');
+    console.log('Usage: npx @nhatprx/vet [--local | --shared] [--adapters]');
     process.exit(0);
   }
   try {
