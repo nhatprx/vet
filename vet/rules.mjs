@@ -11,6 +11,7 @@ import {
   JS_TS_EXTS,
   JVM_EXTS,
   PY_EXTS,
+  TEST_FILE_RE,
   TEST_ONLY_RE,
   TEST_SKIP_JS_RE,
   TEST_SKIP_JVM_RE,
@@ -32,6 +33,7 @@ import {
 export const DEFAULT_CONFIG = {
   maxLoc: 200,
   warnLoc: 175,
+  testMaxLoc: 400,
   maxLineLength: 140,
   maxStatementsPerLine: 2,
   banEmoji: true,
@@ -56,7 +58,7 @@ export const DEFAULT_CONFIG = {
     '.git', '.vet', 'node_modules', 'dist', 'build', 'target', 'out',
     '.next', '.turbo', 'coverage', '__pycache__', '.venv', 'venv',
   ],
-  ignoreFiles: [],
+  ignoreFiles: ['**/*.generated.*', '**/*.d.ts'],
   customRules: [],
 };
 
@@ -147,10 +149,14 @@ export function checkContent(relPath, content, config) {
   const suppressions = buildSuppressionMap(lines, commentLines);
   checkUniversalGuards(relPath, content, lines, config, suppressions, errors, warnings);
 
-  if (lines.length >= config.maxLoc) {
-    errors.push(`[LOC] ${relPath}: ${lines.length} lines (limit < ${config.maxLoc})`);
-  } else if (config.warnLoc && lines.length >= config.warnLoc) {
-    warnings.push(`[LOC_WARN] ${relPath}: ${lines.length} lines (consider splitting before ${config.maxLoc})`);
+  const isTestFile = TEST_FILE_RE.test(relPath);
+  const maxLoc = isTestFile && config.testMaxLoc > 0 ? config.testMaxLoc : config.maxLoc;
+  const warnLoc = isTestFile && config.testMaxLoc > 0 ? Math.floor(config.testMaxLoc * 0.875) : config.warnLoc;
+
+  if (lines.length >= maxLoc) {
+    errors.push(`[LOC] ${relPath}: ${lines.length} lines (limit < ${maxLoc})`);
+  } else if (warnLoc && lines.length >= warnLoc) {
+    warnings.push(`[LOC_WARN] ${relPath}: ${lines.length} lines (consider splitting before ${maxLoc})`);
   }
   if (config.banEmptyCatch) {
     checkEmptyCatches(relPath, ext, strippedContent, commentContent, suppressions, errors);

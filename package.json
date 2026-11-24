@@ -1,6 +1,6 @@
 {
   "name": "@nhatprx/vet",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Lightweight, zero-dependency engineering ruleset and compliance checker for AI agents and developers.",
   "type": "module",
   "license": "MIT",

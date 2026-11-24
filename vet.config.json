@@ -1,6 +1,7 @@
 {
   "maxLoc": 200,
   "warnLoc": 175,
+  "testMaxLoc": 400,
   "maxLineLength": 140,
   "maxStatementsPerLine": 2,
   "banEmoji": true,
@@ -58,6 +59,9 @@
     ".venv",
     "venv"
   ],
-  "ignoreFiles": [],
+  "ignoreFiles": [
+    "**/*.generated.*",
+    "**/*.d.ts"
+  ],
   "customRules": []
 }

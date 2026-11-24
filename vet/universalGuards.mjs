@@ -17,15 +17,18 @@ export function buildSuppressionMap(lines, commentLines) {
   const source = commentLines || lines;
   for (let i = 0; i < source.length; i++) {
     const match = IGNORE_NEXT_LINE_RE.exec(source[i]);
-    if (match) {
-      map.set(i + 2, match[1]);
-    }
+    if (!match) continue;
+    const targetLine = i + 2;
+    const ruleIds = match[1].split(',').map((id) => id.trim()).filter(Boolean);
+    const existing = map.get(targetLine) || new Set();
+    for (const id of ruleIds) existing.add(id);
+    map.set(targetLine, existing);
   }
   return map;
 }
 
 export function isSuppressed(suppressions, lineNo, ruleId) {
-  return suppressions.get(lineNo) === ruleId;
+  return Boolean(suppressions.get(lineNo)?.has(ruleId));
 }
 
 export function checkUniversalGuards(relPath, content, lines, config, suppressions, errors, warnings) {
@@ -80,20 +83,23 @@ export function runCustomRules(relPath, ext, content, customRules, suppressions,
   for (const rule of customRules || []) {
     const exts = Array.isArray(rule.extensions) ? rule.extensions.map((e) => e.toLowerCase()) : [];
     if (exts.length > 0 && !exts.includes(ext)) continue;
+    const rawFlags = rule.flags || '';
+    const flags = rawFlags.includes('g') ? rawFlags : `${rawFlags}g`;
     let regex;
     try {
-      regex = new RegExp(rule.pattern, rule.flags || '');
+      regex = new RegExp(rule.pattern, flags);
     } catch (err) {
       errors.push(`[CUSTOM_RULE_CONFIG] ${rule.id || 'CUSTOM_RULE'}: invalid regex (${err.message})`);
       continue;
     }
-    const match = regex.exec(content);
-    if (match) {
-      const id = rule.id || 'CUSTOM_RULE';
+    const id = rule.id || 'CUSTOM_RULE';
+    const msg = rule.message || `matched forbidden pattern /${rule.pattern}/`;
+    const bucket = rule.severity === 'warn' ? warnings : errors;
+    const reportedLines = new Set();
+    for (const match of content.matchAll(regex)) {
       const lineNo = lineNumberAt(content, match.index);
-      if (isSuppressed(suppressions, lineNo, id)) continue;
-      const msg = rule.message || `matched forbidden pattern /${rule.pattern}/`;
-      const bucket = rule.severity === 'warn' ? warnings : errors;
+      if (reportedLines.has(lineNo) || isSuppressed(suppressions, lineNo, id)) continue;
+      reportedLines.add(lineNo);
       bucket.push(`[${id}] ${relPath}:${lineNo}: ${msg}`);
     }
   }

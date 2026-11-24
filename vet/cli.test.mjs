@@ -122,8 +122,26 @@ test('initProject from external kit (npx mode) copies self-contained .vet/ and s
     assert.equal(res.mode, 'local');
     assert.equal(res.hooksPath, '.vet/.githooks');
     assert.ok(fs.existsSync(path.join(tmp, '.vet', 'vet', 'check.mjs')));
+    assert.ok(!fs.existsSync(path.join(tmp, '.vet', 'vet', 'init.mjs')));
     assert.ok(fs.existsSync(path.join(tmp, '.vet', '.githooks', 'pre-commit')));
 
+    const status = execFileSync('git', ['status', '--porcelain'], { cwd: tmp, encoding: 'utf8' }).trim();
+    assert.equal(status, '');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('initProject fails fast before copying files when not a git repo, and excludes pre-existing untracked files', () => {
+  const tmp = makeTempDir();
+  const kitSrc = path.resolve(process.cwd());
+  try {
+    assert.throws(() => initProject({ targetDir: tmp, kitRoot: kitSrc }), /Not a Git repository/);
+    assert.equal(fs.existsSync(path.join(tmp, 'AGENTS.md')), false);
+
+    execFileSync('git', ['init'], { cwd: tmp, stdio: 'ignore' });
+    fs.writeFileSync(path.join(tmp, 'AGENTS.md'), '# Existing\n');
+    initProject({ targetDir: tmp, kitRoot: kitSrc });
     const status = execFileSync('git', ['status', '--porcelain'], { cwd: tmp, encoding: 'utf8' }).trim();
     assert.equal(status, '');
   } finally {

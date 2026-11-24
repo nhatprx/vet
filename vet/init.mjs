@@ -7,13 +7,7 @@ import { fileURLToPath } from 'node:url';
 const EXCLUDE_START = '# >>> vet-local (do not commit)';
 const EXCLUDE_END = '# <<< vet-local';
 
-const ADAPTER_POINTER = [
-  '# Engineering Rules',
-  '',
-  'Follow all rules in [AGENTS.md](./AGENTS.md) as the single source of truth.',
-  '',
-].join('\n');
-
+const ADAPTER_POINTER = '# Engineering Rules\n\nFollow all rules in [AGENTS.md](./AGENTS.md) as the single source of truth.\n';
 const CURSOR_MDC = [
   '---',
   'description: Vet universal engineering rules',
@@ -23,6 +17,12 @@ const CURSOR_MDC = [
   'Follow all rules in `AGENTS.md` at the repository root as the single source of truth.',
   '',
 ].join('\n');
+
+const ADAPTER_FILES = [
+  { rel: 'CLAUDE.md', content: ADAPTER_POINTER },
+  { rel: '.github/copilot-instructions.md', content: ADAPTER_POINTER },
+  { rel: '.cursor/rules/vet.mdc', content: CURSOR_MDC },
+];
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -44,11 +44,23 @@ function writeIfMissing(dest, content) {
 
 function copyLocalKit(resolvedKit, resolvedTarget) {
   const localKit = path.join(resolvedTarget, '.vet');
-  fs.cpSync(path.join(resolvedKit, 'vet'), path.join(localKit, 'vet'), { recursive: true });
+  fs.cpSync(path.join(resolvedKit, 'vet'), path.join(localKit, 'vet'), {
+    recursive: true,
+    filter: (src) => !src.endsWith('.test.mjs') && path.basename(src) !== 'init.mjs',
+  });
   fs.cpSync(path.join(resolvedKit, '.githooks'), path.join(localKit, '.githooks'), { recursive: true });
   for (const hook of ['pre-commit', 'commit-msg']) {
     const hookFile = path.join(localKit, '.githooks', hook);
     if (fs.existsSync(hookFile)) fs.chmodSync(hookFile, 0o755);
+  }
+}
+
+function isTrackedByGit(targetDir, relPath) {
+  try {
+    execFileSync('git', ['ls-files', '--error-unmatch', relPath], { cwd: targetDir, stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -85,33 +97,30 @@ export function initProject({
   const resolvedTarget = path.resolve(targetDir);
   const resolvedKit = path.resolve(kitRoot);
   const isGitRepo = fs.existsSync(path.join(resolvedTarget, '.git'));
+  if (!shared && !isGitRepo) {
+    throw new Error(`Not a Git repository: ${resolvedTarget}. Run "git init" first or use --shared.`);
+  }
+
   const relKit = path.relative(resolvedTarget, resolvedKit).replaceAll('\\', '/');
   const kitInsideTarget = relKit && !relKit.startsWith('..') && !path.isAbsolute(relKit);
 
   const created = [];
-  const excluded = [];
+  const candidates = [];
 
   if (copyIfMissing(path.join(resolvedKit, 'AGENTS.md'), path.join(resolvedTarget, 'AGENTS.md'))) {
     created.push('AGENTS.md');
-    excluded.push('AGENTS.md');
   }
+  candidates.push('AGENTS.md');
+
   if (copyIfMissing(path.join(resolvedKit, 'vet.config.json'), path.join(resolvedTarget, 'vet.config.json'))) {
     created.push('vet.config.json');
-    excluded.push('vet.config.json');
   }
+  candidates.push('vet.config.json');
 
   if (adapters) {
-    if (writeIfMissing(path.join(resolvedTarget, 'CLAUDE.md'), ADAPTER_POINTER)) {
-      created.push('CLAUDE.md');
-      excluded.push('CLAUDE.md');
-    }
-    if (writeIfMissing(path.join(resolvedTarget, '.github', 'copilot-instructions.md'), ADAPTER_POINTER)) {
-      created.push('.github/copilot-instructions.md');
-      excluded.push('.github/copilot-instructions.md');
-    }
-    if (writeIfMissing(path.join(resolvedTarget, '.cursor', 'rules', 'vet.mdc'), CURSOR_MDC)) {
-      created.push('.cursor/rules/vet.mdc');
-      excluded.push('.cursor/rules/vet.mdc');
+    for (const { rel, content } of ADAPTER_FILES) {
+      if (writeIfMissing(path.join(resolvedTarget, rel), content)) created.push(rel);
+      candidates.push(rel);
     }
   }
 
@@ -129,15 +138,15 @@ export function initProject({
     return { mode: 'shared', created, excluded: [] };
   }
 
-  if (!isGitRepo) {
-    throw new Error(`Not a Git repository: ${resolvedTarget}. Run "git init" first or use --shared.`);
-  }
   const localDir = kitInsideTarget ? relKit : '.vet';
   if (!kitInsideTarget) {
     copyLocalKit(resolvedKit, resolvedTarget);
     created.push('.vet/');
   }
-  excluded.push(`${localDir}/`);
+  const excluded = [
+    `${localDir}/`,
+    ...candidates.filter((rel) => !isTrackedByGit(resolvedTarget, rel)),
+  ];
   const hooksRel = `${localDir}/.githooks`;
   updateGitExclude(resolvedTarget, [...new Set(excluded)]);
   execFileSync('git', ['config', 'core.hooksPath', hooksRel], { cwd: resolvedTarget });

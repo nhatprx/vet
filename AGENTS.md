@@ -11,6 +11,7 @@ Every AI agent and human developer must follow these rules without exception.
 - **HARD LIMIT: Every source code file MUST be strictly under 200 lines of code (`< 200 LOC`).**
   - Blank lines and comments count toward total file lines.
   - Target **<= 175 lines** as a safe buffer (`warnLoc`). When a file approaches 175 lines, **split it proactively** rather than compressing code.
+  - Test files (`*.test.*`, `*.spec.*`, `*_test.*`, `test_*.*`) allow up to **< 400 LOC** (`testMaxLoc`) so thorough boundary/error/security test coverage does not force artificial fragmentation.
 - **No Line-Stuffing:** Do not pack multiple statements onto a single line (`a(); b(); c();`) or exceed `140` characters per line just to stay under the `200 LOC` cap. Always refactor into focused modules instead.
 - **Single Responsibility & Function Complexity:** One file = one clear purpose. Keep functions concise (`<= 50` lines) with shallow nesting (`<= 3` levels, preferring early returns over deep `if`/`else` chains).
 - **Reuse-First & Zero Duplication (DRY):** Before writing any new helper, service, hook, or component, search the codebase and reuse existing abstractions. Never duplicate business logic, validation, or utilities across files; extract a shared, well-named module when logic repeats.
@@ -40,12 +41,12 @@ Every AI agent and human developer must follow these rules without exception.
 - **No Unbounded Lists:** Paginate, cursor, virtualize, or cap every query, API response, and UI list.
 - **No N+1 Patterns:** Batch queries and state fetches; never fire per-row network or database calls in loops.
 - **Explicit Timeouts & Idempotency:** Enforce explicit timeouts (and bounded retries/backoff where safe) on all external network, database, and subprocess I/O. Keep migrations, webhooks, and batch jobs idempotent and safe to retry.
-- **Fail Fast & Zero Hardcoded Secrets:** Validate external input at system boundaries, never commit credentials/keys/tokens, and never leak secrets into logs or client storage.
+- **Fail Fast & Zero Hardcoded Secrets:** Validate external input at system boundaries, never commit credentials/keys/tokens, and never leak secrets into logs or client storage. For intentional mock fixtures (e.g., dummy JWTs or test DB URLs) or justified one-line exceptions, suppress explicitly with a mandatory reason: `// vet-ignore-next-line RULE_ID -- reason` (comma-separated for multiple rules, e.g. `SECRET, LINE_LENGTH`).
 
 ### 1.6 File Management & Project Structure
 - **Follow Existing Architecture First:** Before creating any new file or directory, inspect the current repository layout and match its established grouping (by domain/feature or layer), naming conventions, and test colocation pattern.
 - **Pragmatic Splitting (No Over-Fragmentation):** Split files along cohesive domain or responsibility boundaries, not arbitrarily. Avoid creating trivial micro-files (e.g., 5-15 line pass-through wrappers) unless they define a clear reusable contract or entry point.
-- **Descriptive Naming (No Catch-All Dumping Grounds):** Never create vague or leftover files such as `utils`, `helpers`, `misc`, `common`, `temp`, `*-old`, `*-copy`, or `*.bak`. Name every file after its concrete responsibility (e.g., `dateFormatter`, `authMiddleware`, `orderRepository`).
+- **Descriptive Naming (No Catch-All Dumping Grounds):** Avoid vague catch-all files such as `utils`, `helpers`, or `common` (unless required by an established framework convention like `lib/utils.ts`), and never commit leftover files such as `misc`, `temp`, `*-old`, `*-copy`, or `*.bak`. Name every file after its concrete responsibility (e.g., `dateFormatter`, `authMiddleware`, `orderRepository`).
 - **Clean Root & Sensible Hierarchy:** Keep the repository root minimal (configs, top-level docs, and primary source folders only). Avoid deep, unnecessary directory nesting unless required by the language or framework (e.g., Java packages or file-based routing).
 - **Clean File Lifecycle:** When renaming, replacing, or refactoring a module, delete obsolete files and update all references immediately. Never leave orphaned, duplicate, or backup files in tracked directories.
 - **Isolate Generated & Temporary Artifacts:** Keep build outputs, caches, and scratch files strictly in ignored directories; never commit generated artifacts into source folders.

@@ -78,9 +78,17 @@ test('flags junk filenames without blocking legitimate domain names and respects
   assert.ok(deepRes.warnings.some((w) => w.includes('[DIR_DEPTH]')));
 });
 
-test('supports inline suppression only when a reason is provided', () => {
+test('supports inline suppression for single or multiple rules only when a reason is provided', () => {
   const validSuppress = '// vet-ignore-next-line TS_STRICT -- third-party untyped payload\nconst raw: any = {};\n';
   assert.equal(checkContent('src/ext.ts', validSuppress, DEFAULT_CONFIG).errors.length, 0);
+
+  const multiSuppress = [
+    '// vet-ignore-next-line SECRET, LINE_LENGTH -- long mock key fixture for unit test',
+    `const mock = "${'AKIA'}${'1234567890ABCDEF'}_${'x'.repeat(130)}";`,
+  ].join('\n');
+  const multiRes = checkContent('src/auth.test.ts', multiSuppress, DEFAULT_CONFIG);
+  assert.equal(multiRes.errors.length, 0);
+  assert.equal(multiRes.warnings.length, 0);
 
   const missingReason = '// vet-ignore-next-line TS_STRICT\nconst raw: any = {};\n';
   assert.ok(checkContent('src/ext.ts', missingReason, DEFAULT_CONFIG).errors.some((e) => e.includes('[TS_STRICT]')));

@@ -26,6 +26,15 @@ test('counts lines accurately with trailing newlines at maxLoc boundary', () => 
   const lines200 = `${Array.from({ length: 200 }, (_, i) => `const b${i} = ${i};`).join('\n')}\n`;
   const res200 = checkContent('src/over.ts', lines200, DEFAULT_CONFIG);
   assert.ok(res200.errors.some((e) => e.includes('[LOC]')));
+
+  const test250 = `${Array.from({ length: 250 }, (_, i) => `const t${i} = ${i};`).join('\n')}\n`;
+  const testRes250 = checkContent('src/app.test.ts', test250, DEFAULT_CONFIG);
+  assert.equal(testRes250.errors.length, 0);
+  assert.equal(testRes250.warnings.length, 0);
+
+  const test400 = `${Array.from({ length: 400 }, (_, i) => `const t${i} = ${i};`).join('\n')}\n`;
+  const testRes400 = checkContent('src/app.test.ts', test400, DEFAULT_CONFIG);
+  assert.ok(testRes400.errors.some((e) => e.includes('[LOC]')));
 });
 
 test('detects emojis, TypeScript any variants, and @ts-ignore/@ts-nocheck directives', () => {
@@ -104,8 +113,10 @@ test('supports custom regex rules including warnings and invalid regex handling'
       },
     ],
   };
-  const res = checkContent('src/debug.ts', '// TODO: clean up\nconsole.log("hi");', cfg);
-  assert.ok(res.errors.some((e) => e.includes('[NO_CONSOLE_LOG]')));
+  const res = checkContent('src/debug.ts', '// TODO: clean up\nconsole.log("hi");\nconsole.log("again");', cfg);
+  assert.equal(res.errors.filter((e) => e.includes('[NO_CONSOLE_LOG]')).length, 2);
+  assert.ok(res.errors.some((e) => e.includes('[NO_CONSOLE_LOG] src/debug.ts:2:')));
+  assert.ok(res.errors.some((e) => e.includes('[NO_CONSOLE_LOG] src/debug.ts:3:')));
   assert.ok(res.errors.some((e) => e.includes('[CUSTOM_RULE_CONFIG]')));
   assert.ok(res.warnings.some((w) => w.includes('[TODO_WARN]')));
 });

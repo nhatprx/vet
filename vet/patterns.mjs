@@ -26,9 +26,10 @@ export const EMPTY_CATCH_BRACE_RE = /\bcatch\s*(?:\([^)]*\))?\s*\{\s*\}/g;
 export const EMPTY_EXCEPT_PY_RE = /^[ \t]*except(?:\s+[^:\n]+)?:\s*(?:pass\b|\r?\n[ \t]+pass\b)/gm;
 
 export const JUNK_FILENAME_RE = /^(?:temp|tmp|misc|untitled|newfile)\d*(?:\.|$)|(?:[-_.](?:old|bak|orig|tmp)|\.backup|\scopy(?:\s*\d*)?)(?=\.|$)/i;
+export const TEST_FILE_RE = /(?:^|\/)(?:test_[^/]+|[^/]+(?:[._-](?:test|spec))\.[^/.]+)$/i;
 export const ENV_FILE_RE = /^\.env(?:\..+)?$/i;
 export const ENV_SAFE_RE = /^\.env\.(?:example|template|sample|dist|schema)$/i;
-export const IGNORE_NEXT_LINE_RE = /vet-ignore-next-line\s+([A-Z0-9_]+)\s+--\s+\S/;
+export const IGNORE_NEXT_LINE_RE = /vet-ignore-next-line\s+([A-Z0-9_]+(?:\s*,\s*[A-Z0-9_]+)*)\s+--\s+\S/;
 
 export const SECRET_PATTERNS = [
   { name: 'AWS access key', regex: /\bAKIA[0-9A-Z]{16}\b/ },
