@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+CHECK_SCRIPT="$SCRIPT_DIR/../vet/check.mjs"
+
 if ! command -v node >/dev/null 2>&1; then
   for dir in \
     /opt/homebrew/bin \
@@ -23,8 +26,8 @@ if ! command -v node >/dev/null 2>&1 && [ -d "$HOME/.nvm/versions/node" ]; then
 fi
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "ponytail pre-commit failed: node is not installed or not in PATH." >&2
+  echo "vet pre-commit failed: node is not installed or not in PATH." >&2
   exit 1
 fi
 
-node ponytail/check.mjs --staged
+node "$CHECK_SCRIPT" --staged

@@ -8,7 +8,7 @@ import { collectFiles } from './files.mjs';
 import { DEFAULT_CONFIG } from './rules.mjs';
 
 function makeTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'vet-test-'));
 }
 
 test('workspace walk skips symlinks, deduplicates includes, and respects ignores', () => {

@@ -6,8 +6,10 @@
   "banEmoji": true,
   "banTsAny": true,
   "banSecrets": true,
+  "banEnvFiles": true,
   "banConflictMarkers": true,
   "banTestOnly": true,
+  "banTestSkip": "warn",
   "banDebugger": true,
   "banEmptyCatch": true,
   "banJunkFilenames": true,
@@ -34,8 +36,16 @@
     ".mdx",
     ".txt"
   ],
+  "configExtensions": [
+    ".json",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".sh"
+  ],
   "ignoreDirs": [
     ".git",
+    ".vet",
     "node_modules",
     "dist",
     "build",

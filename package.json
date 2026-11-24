@@ -1,0 +1,15 @@
+{
+  "name": "vet",
+  "version": "1.0.0",
+  "description": "Lightweight, zero-dependency engineering ruleset and compliance checker for AI agents and developers.",
+  "type": "module",
+  "license": "MIT",
+  "repository": "github:nhatprx/vet",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bin": {
+    "vet": "./vet/init.mjs",
+    "vet-check": "./vet/check.mjs"
+  }
+}

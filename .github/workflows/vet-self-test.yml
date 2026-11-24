@@ -1,4 +1,4 @@
-name: Ponytail Compliance
+name: Vet Self-Test
 
 on:
   pull_request:
@@ -6,12 +6,14 @@ on:
     branches: [main, master]
 
 jobs:
-  ponytail:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run Ponytail check
-        run: node ponytail/check.mjs
+      - name: Run unit and integration tests
+        run: node --test vet/*.test.mjs
+      - name: Run strict self-check
+        run: node vet/check.mjs --strict --format github

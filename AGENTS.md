@@ -34,7 +34,7 @@ Every AI agent and human developer must follow these rules without exception.
   - Edge cases and concurrency/state transitions (idempotency, race conditions, expired/revoked credentials).
   - Security boundaries (authentication, authorization/RBAC, path traversal, injection resistance, secret redaction).
 - **Honest Verification (No Weakening Tests):** Never delete assertions, skip tests, or weaken expectations just to force a green build. Fix the root cause instead.
-- **Full Regression Execution:** After every meaningful change, run automated tests covering both new and existing behavior plus `node ponytail/check.mjs` before reporting completion.
+- **Full Regression Execution:** After every meaningful change, run automated tests covering both new and existing behavior plus `node .vet/vet/check.mjs` (or `node vet/check.mjs`) before reporting completion.
 
 ### 1.5 Production-Grade Scale, Resilience & Security
 - **No Unbounded Lists:** Paginate, cursor, virtualize, or cap every query, API response, and UI list.
@@ -70,4 +70,4 @@ Before marking any task complete, verify:
 4. All code, comments, documentation, and commit messages are written strictly in **English**.
 5. Strict typing rules pass with zero type suppressions or unused imports.
 6. Automated tests cover boundary, error, edge, and security cases with zero weakened assertions and zero regressions.
-7. `node ponytail/check.mjs` passes with zero errors.
+7. `node .vet/vet/check.mjs` (or `node vet/check.mjs`) passes with zero errors.
