@@ -1,0 +1,53 @@
+{
+  "maxLoc": 200,
+  "warnLoc": 175,
+  "maxLineLength": 140,
+  "maxStatementsPerLine": 2,
+  "banEmoji": true,
+  "banTsAny": true,
+  "banSecrets": true,
+  "banConflictMarkers": true,
+  "banTestOnly": true,
+  "banDebugger": true,
+  "banEmptyCatch": true,
+  "banJunkFilenames": true,
+  "maxDirDepth": 0,
+  "include": ["."],
+  "extensions": [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs",
+    ".java",
+    ".kt",
+    ".py",
+    ".go",
+    ".rs",
+    ".css",
+    ".scss",
+    ".sql"
+  ],
+  "docExtensions": [
+    ".md",
+    ".mdx",
+    ".txt"
+  ],
+  "ignoreDirs": [
+    ".git",
+    "node_modules",
+    "dist",
+    "build",
+    "target",
+    "out",
+    ".next",
+    ".turbo",
+    "coverage",
+    "__pycache__",
+    ".venv",
+    "venv"
+  ],
+  "ignoreFiles": [],
+  "customRules": []
+}
